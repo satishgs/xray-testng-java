@@ -91,3 +91,85 @@ public class UploadTestResults {
     }
 }
 
+
+
+
+
+
+
+import okhttp3.*;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.CookieManager;
+import java.net.CookiePolicy;
+import java.util.concurrent.TimeUnit;
+
+public class AuthenticateAndUpload {
+
+    public static void main(String[] args) {
+        try {
+            CookieManager cookieManager = new CookieManager();
+            cookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
+
+            OkHttpClient client = new OkHttpClient.Builder()
+                    .connectTimeout(30, TimeUnit.SECONDS)
+                    .writeTimeout(30, TimeUnit.SECONDS)
+                    .readTimeout(30, TimeUnit.SECONDS)
+                    .followRedirects(true)
+                    .cookieJar(new JavaNetCookieJar(cookieManager))
+                    .build();
+
+            String jiraUrl = "https://your-jira-instance.atlassian.net";
+            String token = "your-PAT-token";
+            String projectKey = "YOUR_PROJECT_KEY";
+            String filePath = "path-to-your/testng.xml";
+
+            // Authenticate and print cookies
+            Request requestAuthenticate = new Request.Builder()
+                    .url(jiraUrl + "/rest/api/2/myself")
+                    .header("Authorization", "Bearer " + token)
+                    .build();
+
+            Response responseAuthenticate = client.newCall(requestAuthenticate).execute();
+
+            if (responseAuthenticate.isSuccessful()) {
+                System.out.println("Authenticated successfully!");
+                System.out.println("Cookies: " + cookieManager.getCookieStore().getCookies());
+
+                // Upload file
+                RequestBody requestBody = new MultipartBody.Builder()
+                        .setType(MultipartBody.FORM)
+                        .addFormDataPart("file", "testng.xml",
+                                RequestBody.create(
+                                        new File(filePath),
+                                        MediaType.parse("application/xml")))
+                        .build();
+
+                Request requestUpload = new Request.Builder()
+                        .url(jiraUrl + "/rest/raven/1.0/import/execution/testng?projectKey=" + projectKey)
+                        .header("Authorization", "Bearer " + token)
+                        .post(requestBody)
+                        .build();
+
+                Response responseUpload = client.newCall(requestUpload).execute();
+                if (responseUpload.isSuccessful()) {
+                    System.out.println("File uploaded successfully!");
+                } else {
+                    System.out.println("Error occurred: " + responseUpload.code());
+                    if (responseUpload.body() != null) {
+                        System.out.println("Response: " + responseUpload.body().string());
+                    }
+                }
+
+            } else {
+                System.out.println("Error occurred during authentication: " + responseAuthenticate.code());
+                if (responseAuthenticate.body() != null) {
+                    System.out.println("Response: " + responseAuthenticate.body().string());
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
