@@ -173,3 +173,65 @@ public class AuthenticateAndUpload {
         }
     }
 }
+
+
+import okhttp3.*;
+
+import java.io.File;
+import java.io.IOException;
+
+public class TestNGResultsUploader {
+
+    private static final OkHttpClient CLIENT = new OkHttpClient();
+
+    public static void uploadResults(String testNGResultFilePath, String jiraURL, String projectKey, String bearerToken) throws IOException {
+        RequestBody requestBody = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart("file", "testng-results.xml",
+                        RequestBody.create(new File(testNGResultFilePath), MediaType.parse("application/xml")))
+                .build();
+
+        Request request = new Request.Builder()
+                .url(jiraURL + "/rest/raven/1.0/import/execution/testng?projectKey=" + projectKey)
+                .header("Authorization", "Bearer " + bearerToken)
+                .post(requestBody)
+                .build();
+
+        try (Response response = CLIENT.newCall(request).execute()) {
+            if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
+
+            System.out.println(response.body().string());
+        }
+    }
+
+    public static void uploadEvidence(String issueKey, String evidenceFilePath, String jiraURL, String bearerToken) throws IOException {
+        RequestBody requestBody = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart("file", "evidence.png",
+                        RequestBody.create(new File(evidenceFilePath), MediaType.parse("image/png")))
+                .build();
+
+        Request request = new Request.Builder()
+                .url(jiraURL + "/rest/api/2/issue/" + issueKey + "/attachments")
+                .header("Authorization", "Bearer " + bearerToken)
+                .header("X-Atlassian-Token", "no-check")
+                .post(requestBody)
+                .build();
+
+        try (Response response = CLIENT.newCall(request).execute()) {
+            if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
+
+            System.out.println(response.body().string());
+        }
+    }
+
+    public static void main(String[] args) {
+        try {
+            uploadResults("path_to_testng_results.xml", "https://your-jira-instance.com", "YOUR_PROJECT_KEY", "YOUR_BEARER_TOKEN");
+            uploadEvidence("ISSUE_OR_EXECUTION_KEY", "path_to_evidence_file.png", "https://your-jira-instance.com", "YOUR_BEARER_TOKEN");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+
