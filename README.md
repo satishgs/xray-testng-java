@@ -234,4 +234,26 @@ public class TestNGResultsUploader {
         }
     }
 }
+version: '3'
 
+services:
+  influxdb:
+    image: influxdb:latest
+    ports:
+      - "8086:8086"
+    volumes:
+      - influxdb-data:/var/lib/influxdb
+    environment:
+      - INFLUXDB_DB=testdb
+      - INFLUXDB_USER=testuser
+      - INFLUXDB_USER_PASSWORD=testpass
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    depends_on:
+      - influxdb
+
+volumes:
+  influxdb-data:
