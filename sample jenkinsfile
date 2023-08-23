@@ -1,0 +1,71 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Discover and Run Tests') {
+            steps {
+                script {
+                    def testClasses = findTestClasses('src/test/java/com/example/tests')
+
+                    def testClassChoices = testClasses.collect { testClass ->
+                        [name: testClass, value: testClass]
+                    }
+
+                    // Dynamically generate input for user to select test classes
+                    def userInput = input(
+                        id: 'testClassInput',
+                        message: 'Select test classes to run:',
+                        parameters: [
+                            choice(
+                                name: 'SELECTED_TEST_CLASSES',
+                                choices: testClassChoices,
+                                description: 'Select test classes to run',
+                                multiSelect: true
+                            )
+                        ]
+                    )
+
+                    def selectedTestClasses = userInput['SELECTED_TEST_CLASSES']
+
+                    def testNgXmlContent = generateTestNgXml(selectedTestClasses)
+
+                    writeFile file: 'testng.xml', text: testNgXmlContent
+
+                    // Run TestNG tests using your build tool's command (e.g., Maven, Gradle)
+                    sh 'mvn clean test -DsuiteXmlFile=testng.xml'
+                }
+            }
+        }
+    }
+}
+
+def findTestClasses(testDir) {
+    def testFiles = []
+    findFiles(glob: "${testDir}/**/*.java").each { file ->
+        testFiles.add(file.getRelativePath(testDir))
+    }
+    return testFiles
+}
+
+def generateTestNgXml(testClasses) {
+    def xmlContent = """
+    <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
+    <suite name="TestSuite">
+        <test name="Test">
+            <classes>
+    """
+
+    testClasses.each { className ->
+        xmlContent += """
+                <class name="${className}" />
+        """
+    }
+
+    xmlContent += """
+            </classes>
+        </test>
+    </suite>
+    """
+
+    return xmlContent
+}
