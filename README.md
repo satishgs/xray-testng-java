@@ -257,3 +257,86 @@ services:
 
 volumes:
   influxdb-data:
+
+
+
+  
+pipeline {
+    agent any
+
+    environment {
+        TEST_CLASSES_DIR = 'src/test/java/com/example/tests'
+        TESTNG_XML_FILE = 'testng.xml'
+    }
+
+    stages {
+        stage('Discover Test Classes') {
+            steps {
+                script {
+                    def testClasses = findTestClasses(env.TEST_CLASSES_DIR)
+                    def testClassChoices = testClasses.collect { it.replace('/', '.').replaceAll('.java', '') }
+
+                    // Create dynamic choice parameter with discovered test classes
+                    properties([
+                        parameters([
+                            choice(name: 'SELECTED_TEST_CLASSES', choices: testClassChoices.join('\n'), description: 'Select test classes to run')
+                        ])
+                    ])
+                }
+            }
+        }
+
+        stage('Generate TestNG XML') {
+            steps {
+                script {
+                    def selectedTestClasses = params.SELECTED_TEST_CLASSES.split('\n')
+                    def testNgXmlContent = generateTestNgXml(selectedTestClasses)
+
+                    writeFile file: env.TESTNG_XML_FILE, text: testNgXmlContent
+                }
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                script {
+                    def mvnHome = tool(name: 'Maven', type: 'hudson.tasks.Maven$MavenInstallation').home
+                    def mvnCmd = "${mvnHome}/bin/mvn"
+
+                    sh "${mvnCmd} clean test -DsuiteXmlFile=${env.TESTNG_XML_FILE}"
+                }
+            }
+        }
+    }
+}
+
+def findTestClasses(testDir) {
+    def testFiles = []
+    findFiles(glob: "${testDir}/**/*.java").each { file ->
+        testFiles.add(file.getRelativePath(testDir))
+    }
+    return testFiles
+}
+
+def generateTestNgXml(testClasses) {
+    def xmlContent = """
+    <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
+    <suite name="TestSuite">
+        <test name="Test">
+            <classes>
+    """
+
+    testClasses.each { className ->
+        xmlContent += """
+                <class name="${className}" />
+        """
+    }
+
+    xmlContent += """
+            </classes>
+        </test>
+    </suite>
+    """
+
+    return xmlContent
+}
