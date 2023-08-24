@@ -379,4 +379,29 @@ public class InfluxDBReporter implements ITestListener {
         sendToInfluxDB(result, "FAILURE");
     }
 }
+version: '3'
 
+services:
+  influxdb:
+    image: influxdb:2.0
+    ports:
+      - "8086:8086"
+    volumes:
+      - influxdb-data:/var/lib/influxdb2
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=testuser
+      - DOCKER_INFLUXDB_INIT_PASSWORD=testpass
+      - DOCKER_INFLUXDB_INIT_ORG=myorg
+      - DOCKER_INFLUXDB_INIT_BUCKET=testdb
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=mytoken
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    depends_on:
+      - influxdb
+
+volumes:
+  influxdb-data:
