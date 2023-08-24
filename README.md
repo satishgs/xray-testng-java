@@ -340,3 +340,43 @@ def generateTestNgXml(testClasses) {
 
     return xmlContent
 }
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.testng.ITestListener;
+import org.testng.ITestResult;
+
+public class InfluxDBReporter implements ITestListener {
+
+    private static final String INFLUX_DB_URL = "http://host.docker.internal:8086/write?db=testdb";
+
+    private void sendToInfluxDB(ITestResult result, String status) {
+        String measurement = "testng_results";
+        String testName = result.getName().replace(" ", "_");
+        long duration = result.getEndMillis() - result.getStartMillis();
+
+        String data = String.format("%s,testName=%s status=\"%s\",duration=%d",
+                                    measurement, testName, status, duration);
+
+        try (CloseableHttpClient client = HttpClients.createDefault()) {
+            HttpPost post = new HttpPost(INFLUX_DB_URL);
+            post.setEntity(new StringEntity(data));
+
+            client.execute(post);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onTestSuccess(ITestResult result) {
+        sendToInfluxDB(result, "SUCCESS");
+    }
+
+    @Override
+    public void onTestFailure(ITestResult result) {
+        sendToInfluxDB(result, "FAILURE");
+    }
+}
+
