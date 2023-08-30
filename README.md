@@ -551,4 +551,66 @@ Feel free to modify this content to fit into your Confluence documentation style
 }
 
 
+import org.influxdb.InfluxDB;
+import org.influxdb.InfluxDBFactory;
+import org.influxdb.dto.BatchPoints;
+import org.influxdb.dto.Point;
+import org.testng.ITestContext;
+import org.testng.ITestListener;
+import org.testng.ITestResult;
+
+import java.util.concurrent.TimeUnit;
+
+public class EnhancedTestListener implements ITestListener {
+
+    private InfluxDB influxDB;
+    private final String dbName = "mydb";
+    private final String osType = "Windows"; // Assuming the OS is Windows
+
+    @Override
+    public void onStart(ITestContext context) {
+        influxDB = InfluxDBFactory.connect("http://localhost:8086", "username", "password");
+    }
+
+    @Override
+    public void onTestSuccess(ITestResult result) {
+        writeMetricsToInfluxDB("pass", result);
+    }
+
+    @Override
+    public void onTestFailure(ITestResult result) {
+        writeMetricsToInfluxDB("fail", result);
+    }
+
+    private void writeMetricsToInfluxDB(String status, ITestResult result) {
+        String nodeName = System.getenv("NODE_NAME");
+        String nodeLabels = System.getenv("NODE_LABELS");
+        String triggeredBy = System.getenv("BUILD_USER");
+
+        Point point = Point.measurement("test_metrics")
+                .time(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
+                .addField("status", status)
+                .addField("execution_time", result.getEndMillis() - result.getStartMillis())
+                .addField("environment", result.getTestContext().getSuite().getParameter("environment"))
+                .addField("test_class", result.getTestClass().getName())
+                .addField("test_method", result.getMethod().getMethodName())
+                .addField("start_time", result.getStartMillis())
+                .addField("end_time", result.getEndMillis())
+                .addField("os_type", osType)
+                .addField("priority", result.getMethod().getPriority())
+                .addField("triggered_by", triggeredBy != null ? triggeredBy : "unknown")
+                .addField("node_name", nodeName != null ? nodeName : "unknown")
+                .addField("node_labels", nodeLabels != null ? nodeLabels : "unknown")
+                .build();
+
+        BatchPoints batchPoints = BatchPoints
+                .database(dbName)
+                .build();
+        batchPoints.point(point);
+
+        influxDB.write(batchPoints);
+    }
+}
+
+
 
