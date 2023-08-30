@@ -614,3 +614,108 @@ public class EnhancedTestListener implements ITestListener {
 
 
 
+{
+  "title": "Enhanced Test Automation Dashboard",
+  "panels": [
+    {
+      "title": "Total Passed Tests",
+      "type": "gauge",
+      "datasource": "InfluxDB",
+      "targets": [
+        {
+          "query": "SELECT count(\"status\") FROM \"test_metrics\" WHERE \"status\" = 'pass'"
+        }
+      ]
+    },
+    {
+      "title": "Total Failed Tests",
+      "type": "gauge",
+      "datasource": "InfluxDB",
+      "targets": [
+        {
+          "query": "SELECT count(\"status\") FROM \"test_metrics\" WHERE \"status\" = 'fail'"
+        }
+      ]
+    },
+    {
+      "title": "Average Execution Time",
+      "type": "gauge",
+      "datasource": "InfluxDB",
+      "targets": [
+        {
+          "query": "SELECT mean(\"execution_time\") FROM \"test_metrics\""
+        }
+      ]
+    },
+    {
+      "title": "Flaky Tests",
+      "type": "stat",
+      "datasource": "InfluxDB",
+      "targets": [
+        {
+          "query": "SELECT count(\"status\") FROM \"test_metrics\" WHERE \"is_flaky\" = true"
+        }
+      ]
+    },
+    {
+      "title": "Longest Running Test",
+      "type": "stat",
+      "datasource": "InfluxDB",
+      "targets": [
+        {
+          "query": "SELECT max(\"execution_time\") FROM \"test_metrics\""
+        }
+      ]
+    },
+    {
+      "title": "Recent Failures",
+      "type": "table",
+      "datasource": "InfluxDB",
+      "targets": [
+        {
+          "query": "SELECT last(\"test_name\") FROM \"test_metrics\" WHERE \"status\" = 'fail' GROUP BY \"test_name\""
+        }
+      ]
+    },
+    {
+      "title": "Success/Failure Ratio",
+      "type": "bargauge",
+      "datasource": "InfluxDB",
+      "targets": [
+        {
+          "query": "SELECT count(\"status\") FROM \"test_metrics\" GROUP BY \"status\""
+        }
+      ]
+    },
+    {
+      "title": "Total Executed Tests",
+      "type": "stat",
+      "datasource": "InfluxDB",
+      "targets": [
+        {
+          "query": "SELECT count(\"status\") FROM \"test_metrics\""
+        }
+      ]
+    },
+    {
+      "title": "Error Types",
+      "type": "piechart",
+      "datasource": "InfluxDB",
+      "targets": [
+        {
+          "query": "SELECT count(\"error_type\") FROM \"test_metrics\" WHERE \"status\" = 'fail' GROUP BY \"error_type\""
+        }
+      ]
+    },
+    {
+      "title": "Skipped Tests",
+      "type": "stat",
+      "datasource": "InfluxDB",
+      "targets": [
+        {
+          "query": "SELECT count(\"status\") FROM \"test_metrics\" WHERE \"status\" = 'skip'"
+        }
+      ]
+    }
+  ]
+}
