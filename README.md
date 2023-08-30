@@ -405,3 +405,73 @@ services:
 
 volumes:
   influxdb-data:
+
+
+Certainly! Here's an updated version of the write-up with a Problem Statement section:
+
+---
+
+# Enabling Linked Connections in Windows via PowerShell
+
+## Problem Statement
+
+Users may experience issues when trying to write to a network share with elevated permissions, especially when User Account Control (UAC) is enabled. This is typically referred to as the "split-token" issue, where elevated and non-elevated applications do not have the same access to network resources. This article aims to address this problem by enabling the `EnableLinkedConnections` registry setting via PowerShell.
+
+## Overview
+
+This guide describes the use of a PowerShell script to modify a specific registry key that addresses the "split-token" issue. The registry key `EnableLinkedConnections` will be set to `1`, which should help to make network drives accessible to both elevated and standard permissions.
+
+## Pre-Requisites
+
+- Administrative access to the machine
+- Backup of important data and registry
+
+## PowerShell Script
+
+Here's the PowerShell script that sets the `EnableLinkedConnections` registry key to `1`.
+
+```powershell
+# Set the registry key for EnableLinkedConnections
+
+$registryPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System"
+$registryKeyName = "EnableLinkedConnections"
+$registryKeyValue = 1
+
+# Check if the registry key already exists
+if (Test-Path $registryPath) {
+    # Change the value of the registry key
+    Set-ItemProperty -Path $registryPath -Name $registryKeyName -Value $registryKeyValue
+} else {
+    # Create the registry key and set its value
+    New-Item -Path $registryPath -Force
+    New-ItemProperty -Path $registryPath -Name $registryKeyName -Value $registryKeyValue
+}
+
+# Output to confirm the registry key has been set
+Write-Host "Registry key $registryKeyName has been set to $registryKeyValue."
+```
+
+## Instructions to Run the Script
+
+1. Open PowerShell as an administrator.
+2. Copy and paste the script into the PowerShell window.
+3. Execute the script by pressing Enter.
+
+## Restart Required
+
+After running the script, a system restart is generally required for the changes to take effect. This ensures that the updated settings are loaded by the operating system.
+
+### Workaround for Restart
+
+While some services can be restarted to apply certain changes, for system-level registry changes like `EnableLinkedConnections`, a system restart is almost always necessary. There are no officially supported methods to apply such changes without a restart.
+
+## Caution
+
+Always backup your registry and important data before making changes to the registry. Incorrect changes can cause serious issues with your system.
+
+---
+
+Feel free to modify this content to fit into your Confluence documentation style and guidelines.
+
+
+
