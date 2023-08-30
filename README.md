@@ -474,4 +474,81 @@ Always backup your registry and important data before making changes to the regi
 Feel free to modify this content to fit into your Confluence documentation style and guidelines.
 
 
+{
+  "title": "Selenium Automation Dashboard",
+  "panels": [
+    {
+      "title": "Total Passed Tests",
+      "type": "gauge",
+      "datasource": "InfluxDB",
+      "targets": [
+        {
+          "query": "SELECT count(\"status\") FROM \"test_metrics\" WHERE \"status\" = 'pass'"
+        }
+      ]
+    },
+    {
+      "title": "Total Failed Tests",
+      "type": "gauge",
+      "datasource": "InfluxDB",
+      "targets": [
+        {
+          "query": "SELECT count(\"status\") FROM \"test_metrics\" WHERE \"status\" = 'fail'"
+        }
+      ]
+    },
+    {
+      "title": "Average Execution Time",
+      "type": "gauge",
+      "datasource": "InfluxDB",
+      "targets": [
+        {
+          "query": "SELECT mean(\"execution_time\") FROM \"test_metrics\""
+        }
+      ]
+    },
+    {
+      "title": "Test Success Rate",
+      "type": "gauge",
+      "datasource": "InfluxDB",
+      "targets": [
+        {
+          "query": "YOUR_QUERY_FOR_TEST_SUCCESS_RATE"
+        }
+      ]
+    },
+    {
+      "title": "Time Since Last Failure",
+      "type": "stat",
+      "datasource": "InfluxDB",
+      "targets": [
+        {
+          "query": "YOUR_QUERY_FOR_TIME_SINCE_LAST_FAILURE"
+        }
+      ]
+    },
+    {
+      "title": "Tests By Module/Feature",
+      "type": "piechart",
+      "datasource": "InfluxDB",
+      "targets": [
+        {
+          "query": "YOUR_QUERY_FOR_TESTS_BY_MODULE_OR_FEATURE"
+        }
+      ]
+    },
+    {
+      "title": "Common Errors",
+      "type": "table",
+      "datasource": "InfluxDB",
+      "targets": [
+        {
+          "query": "YOUR_QUERY_FOR_COMMON_ERRORS"
+        }
+      ]
+    }
+  ]
+}
+
+
 
