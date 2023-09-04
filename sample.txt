@@ -1,0 +1,26 @@
+# Define the path to the root folder whose permissions you want to propagate
+$rootFolderPath = "C:\Path\To\RootFolder"
+
+# Get the current ACL of the root folder
+$rootFolderAcl = Get-Acl -Path $rootFolderPath
+
+# Enable inheritance for the root folder ACL
+$rootFolderAcl.SetAccessRuleProtection($false, $true)
+
+# Apply the updated ACL to the root folder
+Set-Acl -Path $rootFolderPath -AclObject $rootFolderAcl
+
+# Now propagate these permissions to all child objects (folders and files)
+Get-ChildItem -Path $rootFolderPath -Recurse | ForEach-Object {
+    # Display the name of the current item
+    Write-Host "Setting permissions for: $($_.FullName)"
+    
+    # Get the current ACL for the item
+    $itemAcl = Get-Acl -Path $_.FullName
+    
+    # Set the item ACL to allow inherited permissions
+    $itemAcl.SetAccessRuleProtection($false, $true)
+    
+    # Apply the updated ACL to the item
+    Set-Acl -Path $_.FullName -AclObject $itemAcl
+}
