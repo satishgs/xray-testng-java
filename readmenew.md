@@ -162,3 +162,16 @@ A: Check the logs for a success message with timestamp.
 ---
 
 Feel free to insert this updated template into your Confluence page.
+
+
+
+
+while ($true) {
+    Write-Host "Applying folder permissions... $(Get-Date)"
+    
+    # Set permissions
+    icacls "C:\Path\To\Folder" /inheritance:r /grant "DOMAIN\GroupName:R"
+
+    # Wait for 15 minutes
+    Start-Sleep -Seconds 900
+}
