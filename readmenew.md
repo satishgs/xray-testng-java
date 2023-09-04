@@ -1,3 +1,28 @@
+while ($true) {
+    Write-Host "Reading and reapplying folder permissions... $(Get-Date)"
+    
+    # Define the root folder
+    $rootFolderPath = "C:\Path\To\RootFolder"
+
+    # Get the ACL of the root folder
+    $acl = Get-Acl -Path $rootFolderPath
+
+    # Apply the ACL to the root folder itself
+    Set-Acl -Path $rootFolderPath -AclObject $acl
+
+    # Apply the ACL to all subfolders and files
+    Get-ChildItem $rootFolderPath -Recurse | ForEach-Object {
+        Set-Acl -Path $_.FullName -AclObject $acl
+    }
+
+    Write-Host "Permissions reapplied to $rootFolderPath and all subfolders at $(Get-Date)"
+
+    # Wait for 15 minutes
+    Start-Sleep -Seconds 900
+}
+
+
+
 Certainly, here's the updated version without the colored output part:
 
 ---
