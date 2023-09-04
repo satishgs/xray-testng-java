@@ -175,3 +175,33 @@ while ($true) {
     # Wait for 15 minutes
     Start-Sleep -Seconds 900
 }
+
+
+
+$folderPath = "C:\Path\To\Folder"
+
+$acl = Get-Acl $folderPath
+
+$permission = "DOMAIN\GroupName","Modify","ContainerInherit,ObjectInherit","None","Allow" 
+
+$accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule $permission
+
+$acl.SetAccessRule($accessRule)
+
+Set-Acl $folderPath $acl
+
+Write-Host "Applied permissions to $folderPath at $(Get-Date)"
+
+while ($true) {
+
+  Start-Sleep -Seconds 900
+  
+  $acl = Get-Acl $folderPath
+
+  $acl.SetAccessRule($accessRule)
+
+  Set-Acl $folderPath $acl
+
+  Write-Host "Re-applied permissions to $folderPath at $(Get-Date)"
+
+}
