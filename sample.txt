@@ -24,3 +24,51 @@ Get-ChildItem -Path $rootFolderPath -Recurse | ForEach-Object {
     # Apply the updated ACL to the item
     Set-Acl -Path $_.FullName -AclObject $itemAcl
 }
+
+import moment from 'moment';
+import Holidays from 'date-holidays';
+
+// Initialize the Holidays object for the UK
+const hd = new Holidays('GB');
+
+const isPublicHoliday = (date) => {
+  try {
+    return hd.isHoliday(date.toDate()) !== false;
+  } catch (error) {
+    console.error("An error occurred while checking for public holidays:", error);
+    return false;
+  }
+};
+
+const isWeekend = (date) => {
+  const dayOfWeek = date.day();
+  return dayOfWeek === 0 || dayOfWeek === 6;
+};
+
+const isBusinessDay = (date) => !isWeekend(date) && !isPublicHoliday(date);
+
+const getLastBusinessDayOfMonth = (startDate, endDate) => {
+  for (let day = moment(endDate); day >= startDate; day.subtract(1, 'days')) {
+    if (isBusinessDay(day)) {
+      return day;
+    }
+  }
+  return null;
+};
+
+// Get today's date
+const today = moment();
+
+// Get the first and last days of the month
+const firstDayOfMonth = moment(today).startOf('month');
+const lastDayOfMonth = moment(today).endOf('month');
+
+// Get the last business day of the month
+const lastBusinessDay = getLastBusinessDayOfMonth(firstDayOfMonth, lastDayOfMonth);
+
+if (lastBusinessDay && lastBusinessDay.isSame(today, 'day')) {
+  console.log("Today is the last business day of the month.");
+} else {
+  console.log("Today is not the last business day of the month.");
+}
+
