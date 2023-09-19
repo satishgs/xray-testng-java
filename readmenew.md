@@ -260,3 +260,56 @@ while ($true) {
   Write-Host "Re-applied permissions to $folderPath at $(Get-Date)"
 
 }
+import 'dotenv/config';
+import ProgressBar from 'progress';
+import * as helpers from './helpers';
+import * as dbfs from './services/dbfs';
+import * as cyberark from './services/cyberark';
+import * as expdp from './services/expdp';
+import * as logParser from './services/logParser';
+
+const RETRY_LIMIT = parseInt(process.env.RETRY_LIMIT || 3);
+
+const main = async () => {
+  const schemaNames = ['Schema1', 'Schema2'];
+  const progressBar = new ProgressBar(':bar :current/:total', { total: schemaNames.length * 4 });
+
+  for (const schemaName of schemaNames) {
+    let folderName;
+    try {
+      helpers.logger.info(`Starting export for schema: ${schemaName}`);
+
+      folderName = await helpers.performWithRetry(() => dbfs.createDateBasedFolder(), RETRY_LIMIT, progressBar);
+      await helpers.performWithRetry(() => dbfs.createSubFolders(folderName), RETRY_LIMIT, progressBar);
+      const dbPassword = await helpers.performWithRetry(() => cyberark.getPassword(), RETRY_LIMIT, progressBar);
+      const expdpLog = await helpers.performWithRetry(() => expdp.performExport(dbPassword, schemaName), RETRY_LIMIT, progressBar);
+
+      const hasErrors = logParser.parse(expdpLog);
+      if (hasErrors) {
+        helpers.logger.error(`Export for schema ${schemaName} failed with errors.`);
+      } else {
+        helpers.logger.info(`Export for schema ${schemaName} successful.`);
+      }
+
+      if (helpers.isLastBusinessDayOfTheMonth()) {
+        helpers.logger.info('Today is the last business day of the month. Moving backup folder to network share.');
+        await helpers.performWithRetry(() => dbfs.moveFolderToNetworkShare(folderName), RETRY_LIMIT, progressBar);
+      }
+
+    } catch (err) {
+      helpers.logger.error(`An error occurred for schema ${schemaName}: ${err}`);
+
+      if (folderName) {
+        try {
+          await dbfs.removeFolder(folderName);
+        } catch (cleanupErr) {
+          helpers.logger.error(`Failed to clean up resources: ${cleanupErr}`);
+        }
+      }
+    }
+  }
+};
+
+main().catch((err) => helpers.logger.error(`Fatal Error: ${err}`));
+
+
