@@ -1,0 +1,126 @@
+Certainly! Below is a comprehensive guide designed for a Confluence page, with more straightforward formatting and language. It's prepared to be a complete, copy-paste ready document. Feel free to enhance it with Confluence features like tagging, cross-linking, and version history.
+
+---
+
+# Database Export and Cleanup Utility: Design and Implementation Guide
+
+---
+
+## Introduction
+
+Welcome to the comprehensive guide to the Database Export and Cleanup Utility. This document aims to offer a complete understanding of the utility, including its architecture, design patterns, and implementation details.
+
+---
+
+## Table of Contents
+
+1. [Architecture and Technologies](#Architecture-and-Technologies)
+2. [Project Structure and File Descriptions](#Project-Structure-and-File-Descriptions)
+3. [Environment and Setup Requirements](#Environment-and-Setup-Requirements)
+4. [Configuration Management](#Configuration-Management)
+5. [Dynamic Password Retrieval and Security](#Dynamic-Password-Retrieval-and-Security)
+6. [Logging Mechanism](#Logging-Mechanism)
+7. [Execution Workflow](#Execution-Workflow)
+8. [Limitations and Special Considerations](#Limitations-and-Special-Considerations)
+9. [Error Handling](#Error-Handling)
+10. [Possible Enhancements](#Possible-Enhancements)
+11. [Conclusion](#Conclusion)
+
+---
+
+## Architecture and Technologies
+
+This section provides an overview of the architecture and technologies used.
+
+- **Node.js**: Core technology for backend operations.
+- **Oracle DBFS_Client**: Handles Oracle database file system operations.
+- **CyberArk**: Provides dynamic password retrieval for secure operations.
+- **Oracle Wallet**: Enables secure transactions for DBFS operations without hard-coded credentials.
+
+---
+
+## Project Structure and File Descriptions
+
+Here is a hierarchical representation of the project's file structure along with a brief explanation of each file's role.
+
+\[Insert code snippet to show project structure here]
+
+---
+
+## Environment and Setup Requirements
+
+This section lists the software, version specifications, and environment variables necessary for running the utility.
+
+\[Insert details here]
+
+---
+
+## Configuration Management
+
+This section explains how configuration is managed across different environments. The utility uses a `config.js` file to handle this.
+
+\[Insert code snippet from `config.js` here]
+
+---
+
+## Dynamic Password Retrieval and Security
+
+- **CyberArk**: The utility employs CyberArk for dynamically fetching passwords for database operations.
+- **Oracle Wallet**: This is used exclusively for executing secure DBFS commands without exposing database credentials.
+
+---
+
+## Logging Mechanism
+
+The utility employs a robust logging mechanism. This section discusses the logging features, log rotation, and archival strategy.
+
+\[Insert updated logger.js code snippet here]
+
+---
+
+## Execution Workflow
+
+Here is a step-by-step guide of the utility's execution flow, beginning from when the user runs `exportCore.js` or `exportDatamart.js`.
+
+1. **Create Named Directories**: [Description]
+2. **Fetch Password from CyberArk**: [Description]
+3. **Initiate EXPDP**: [Description]
+4. **Copy and Delete Files**: [Description]
+5. **Perform Cleanup**: [Description]
+6. **Last Business Day Check**: [Description]
+
+\[Insert pseudo-code illustrating the workflow here]
+
+---
+
+## Limitations and Special Considerations
+
+This section provides a list of limitations, constraints, and unique features of this utility.
+
+\[Insert details here]
+
+---
+
+## Error Handling
+
+This part elaborates on how errors are captured and handled at each step of the process, along with the contingency plans in place if one stage fails.
+
+\[Insert details here]
+
+---
+
+## Possible Enhancements
+
+This segment lists potential future enhancements that could make the utility more robust, secure, and efficient.
+
+\[Insert details here]
+
+---
+
+## Conclusion
+
+In summary, this utility serves as a comprehensive solution for automating key operations involved in database management, ensuring high levels of efficiency and security.
+
+---
+
+After pasting this content into Confluence, feel free to make it more interactive with Confluence's built-in features.
