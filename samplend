@@ -1,0 +1,44 @@
+# Define parameters
+$evtxPath = "C:\windows\system32\winevt\Logs\applica.evtx"
+$driveMappingConfig = @{
+    "DAC1" = @{
+        "DriveLetter" = "X:"
+        "NetworkPath" = "\\Server1\share"
+    }
+    "DAC2" = @{
+        "DriveLetter" = "Y:"
+        "NetworkPath" = "\\Server2\share"
+    }
+    # Add more mappings as needed
+}
+
+# Function to map a network drive
+function Map-NetworkDrive {
+    param (
+        [string]$DriveLetter,
+        [string]$NetworkPath
+    )
+
+    New-PSDrive -Name $DriveLetter.TrimEnd(':') -PSProvider FileSystem -Root $NetworkPath -Persist
+    Write-Output "Mapped network drive to $NetworkPath on $DriveLetter"
+}
+
+# Read events from the .evtx file
+$events = Get-WinEvent -Path $evtxPath | 
+Where-Object { $_.Message -match 'Login Successful: Authentication Succeeded for \w+ on (\w+)\s+\(\w+\)' }
+
+# Process each event
+foreach ($event in $events) {
+    if ($event.Message -match 'Login Successful: Authentication Succeeded for \w+ on (\w+)\s+\(\w+\)') {
+        $serverCode = $matches[1]
+
+        # Check if there is a mapping for the server code
+        if ($driveMappingConfig.ContainsKey($serverCode)) {
+            $mapping = $driveMappingConfig[$serverCode]
+            Map-NetworkDrive -DriveLetter $mapping.DriveLetter -NetworkPath $mapping.NetworkPath
+        }
+        else {
+            Write-Warning "No drive mapping found for server code: $serverCode"
+        }
+    }
+}
